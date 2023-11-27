@@ -1,0 +1,92 @@
+mql5
+// RSI Divergence Scanner
+// Developer: Forex Robot Easy Team (forexroboteasy.com)
+
+// Define input parameters
+input bool enableAlerts = true; // Enable/disable alerts
+input bool enableSoundAlert = true; // Enable/disable sound alerts
+input bool enableVisualAlert = true; // Enable/disable visual alerts
+input int sensitivity = 14; // RSI sensitivity
+input double overboughtLevel = 70; // RSI overbought level
+input double oversoldLevel = 30; // RSI oversold level
+
+// Define global variables
+bool previousDivergence = false; // Previous divergence flag
+
+// Initialize the indicator
+int OnInit()
+{
+    // Add indicator buffers
+    SetIndexBuffer(0, rsibuffer);
+    SetIndexStyle(0, DRAW_LINE);
+
+    // Add alerts
+    if (enableAlerts)
+    {
+        Alert('RSI Divergence Detected');
+    }
+    
+    return(INIT_SUCCEEDED);
+}
+
+// Start the indicator
+void OnStart()
+{
+    // Calculate RSI
+    double rsi = iRSI(NULL, 0, sensitivity, PRICE_CLOSE, 0);
+    
+    // Check for RSI divergence
+    bool divergence = checkDivergence(rsi);
+    
+    // Handle divergence
+    if (divergence)
+    {
+        // Send alerts
+        if (enableAlerts)
+        {
+            if (enableSoundAlert)
+            {
+                PlaySound('alert.wav');
+            }
+            
+            if (enableVisualAlert)
+            {
+                Alert('RSI Divergence Detected');
+            }
+        }
+        
+        // Update previous divergence flag
+        previousDivergence = true;
+    }
+    else
+    {
+        previousDivergence = false;
+    }
+}
+
+// Function to check for RSI divergence
+bool checkDivergence(double rsi)
+{
+    // Get current price
+    double price = Close[0];
+    
+    // Calculate previous price
+    double previousPrice = Close[1];
+    
+    // Calculate previous RSI
+    double previousRSI = iRSI(NULL, 0, sensitivity, PRICE_CLOSE, 1);
+    
+    // Check for bullish divergence
+    if (price > previousPrice && rsi < previousRSI)
+    {
+        return true;
+    }
+    
+    // Check for bearish divergence
+    if (price < previousPrice && rsi > previousRSI)
+    {
+        return true;
+    }
+    
+    return false;
+}
